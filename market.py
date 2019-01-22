@@ -19,9 +19,3 @@ class MarketSimulator:
         linmod = skl.LassoCV(Y, X)
         results = linmod.coef_
         return results
-
-    def _montecarlo(self, *, n):
-        '''
-        feed dataset for bootstrapping draws, OR draws from param'd dist.
-        '''
-        return results
