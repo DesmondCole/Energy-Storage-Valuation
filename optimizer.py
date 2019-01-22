@@ -9,7 +9,9 @@ def solve(X, T, q = 1):
     '''
     for i in np.arange(0, nsims):
         U = X[i, :, :]
-        V0 = np.zeros(1, hours)
+        V0 = np.zeros(states, hours)
         V1 = U[:, -1]
         for j in np.arange(hours - 1, 0, -1):
-            V0[j] = arg.max()
+            for k in np.arange(0, states):
+                V0[k, j] = arg.max(T[k, :] + V1)
+            V1 = V0
