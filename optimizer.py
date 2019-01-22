@@ -3,7 +3,7 @@ import numpy as np
 def solve(X, T, q = 1):
     '''
     This runs a markov decision model.
-    X is an nd.array, of {nsims, states, hours}
+    X is an nd.array, of {nsims, states, periods}
     T is an nd.array, of {states, states}
     q indicates the shortest possible switching time. Default to 1 hour.
     '''
