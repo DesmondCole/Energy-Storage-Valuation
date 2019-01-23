@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import optimizer as opt
+from src import optimizer as opt
 
 class DispatchAsset:
     '''

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import storage_char as sc
+from src import storage_char as sc
 
 #Example Asset
 FirstBatt = sc.Asset(

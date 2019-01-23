@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import monte_carlo
+from src import monte_carlo
 from sklearn import linear_model as lm
 
 class MarketSimulator:
