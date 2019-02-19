@@ -8,17 +8,9 @@ class DispatchAsset:
     Feeds the optimizer storage characteristics, and runs it to generate values.
     '''
     def __call__(self, *, asset, gen, market):
-<<<<<<< HEAD
-        opt_states = opt.solve(value_mat, trans_cost_mat)
-        gen = gen
-        '''
-        work here to define rewards and transition values
-        '''
-=======
         reward_mat = self._rewardvals(asset = asset)
         prob_mat = self._probvals(asset = asset, gen = gen, market = market)
         opt_states = opt.solve(reward_mat, prob_mat)
->>>>>>> 85716b76b4f9b2be2b9e392c07fc21c9d2a95d94
         return opt_states
 
     def _rewardvals(self, *, asset, market):
