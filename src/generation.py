@@ -3,12 +3,18 @@ import numpy as np
 
 class Solar:
     '''
-    Map from simulated weather to solar generation
+    Simplified: use year's worth of actual data.
+    Next: map from simulated weather to solar generation
     '''
-    def __init__(self, *, system_size, efficiency, tilt, tracking):
-        size = system_size
-        conv = efficiency
+    def __call__(self, *, system_size, efficiency, tilt, tracking, type):
+        if type == 'simul':
+            size = system_size
+            conv = efficiency
+            '...'
+            gen = self._genvals(wx = wx, params = params)
+        if type == 'simple':
+            gen = pd.read_csv('../data/*.csv')[['Power(MW)']]
 
-    def genvals(self, *, wx, size, conv):
+    def _genvals(self, *, wx, params):
         gen = np.matmul(wx, params)
         return gen
