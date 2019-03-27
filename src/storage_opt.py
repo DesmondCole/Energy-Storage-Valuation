@@ -10,8 +10,8 @@ class DispatchAsset:
     def __call__(self, *, asset, gen, market):
         reward_mat = self._rewardvals(asset = asset)
         prob_mat = self._probvals(asset = asset, gen = gen, market = market)
-        opt_states = opt.solve(reward_mat, prob_mat)
-        return opt_states
+        results = opt.solve(reward_mat, prob_mat)
+        return results
 
     def _rewardvals(self, *, asset, market):
         '''
