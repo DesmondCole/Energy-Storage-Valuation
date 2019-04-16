@@ -3,11 +3,16 @@ import numpy as np
 from src import monte_carlo
 from sklearn import linear_model as lm
 
+
 class MarketSimulator:
-    def __call__(self, *, testdata):
-        runprices = self._calibration(data = testdata)
-        results = runprices
-        return results
+    def __init__(self, *, testdata, method):
+        if method == 'sim':
+            runprices = self._calibration(data = testdata)
+            self.results = runprices
+        if method == 'mock':
+            print('using mock prices')
+            self.results = pd.read_csv('./data/mockprices.csv', parse_dates = ['timestamp'])
+        return None
 
     def _do_prices(self, *, prices, sims):
         input_rels = self._calibration(data=prices)
