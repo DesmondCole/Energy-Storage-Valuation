@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src import monte_carlo
+import datetime as dt
 from sklearn import linear_model as lm
 
 
@@ -11,7 +11,9 @@ class MarketSimulator:
             self.results = runprices
         if method == 'mock':
             print('using mock prices')
-            self.results = pd.read_csv('./data/mockprices.csv', parse_dates = ['timestamp'])
+            self.results = pd.read_csv('./data/prices.csv', parse_dates = ['Day'])
+            self.results['year'] = self.results['Day'].dt.year
+            self.results['month'] = self.results['Day'].dt.month
         return None
 
     def _do_prices(self, *, prices, sims):

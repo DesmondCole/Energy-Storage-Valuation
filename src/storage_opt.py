@@ -7,43 +7,48 @@ class DispatchAsset:
     '''
     Feeds the optimizer storage characteristics, and runs it to generate values.
     '''
-    def __call__(self, *, asset, gen, market):
-        reward_mat = self._rewardvals(asset = asset)
+    def __init__(self, *, asset, gen, market):
+        reward_mat = self._rewardvals(asset = asset, market = market, gen = gen)
         prob_mat = self._probvals(asset = asset, gen = gen, market = market)
         results = opt.solve(reward_mat, prob_mat)
-        return results
+        self.testresults = {'reward': reward_mat, 'prob': prob_mat, 'vals': results}
+        return None
 
-    def _rewardvals(self, *, asset, market):
+    def _rewardvals(self, *, asset, market, gen):
         '''
-        use transition profile to generate reward matrix.
-        market is a dictionary of prices, sims, and generation.
+        Incorporating the action and state spaces, as well as simulated
+        prices and generation, develop a reward matrix that will be shipped
+        to the optimizer for bellman equation optimization.
+
+        Initially built with restriction that solar capacity equal storage cap.
         '''
-        periods = 24
-        sims = market['sims']
-        prices = market['prices']
-        rawmat = np.zeros((sims, asset['mw_cap'], asset['mw_cap'], periods))
-        for i in np.arange(0, sims):
-            for j in np.arange(0, periods):
-                rawmat[i, :, :, j] = np.matrix([[0,0,0],[.5,0,0],[1,.5,0]])
-                rawmat[i, :, :, j] = np.tril(rawmat[i, :, :, j])
-                rawmat[i, :, :, j] = prices[i, j] * rawmat[i, :, :, j]
-        results = rawmat
-        return results
+        generation = gen
+        prices = market['price']
+        states = np.arange(0,(asset['mw']+.1),.1)/asset['mw']
+        periods = 168
+        capacity = asset['mw']
+        ancillary = .5
+        rewardmat = np.zeros((len(states),len(states),periods))
+        for i in np.arange(0,periods):
+            solargen = generation[i]
+            price = prices[i]
+            rows = np.ones((1,len(states))).T
+            solarmat = 1 - np.triu((rows * states) - (rows * states).T)
+            solarrev = solarmat * solargen * price
+            storagemat = 1 - solarmat.T
+            storagerev = storagemat * capacity * price + np.diag(ancillary * capacity * states)
+            rewardmat[:,:,i] = solarrev + storagerev
+        return rewardmat
 
     def _probvals(self, *, asset, gen, market):
         '''
-        use asset, generation, and market characteristics to generate transition
-        probability matrix.
+        generate transition probability matrix.
         '''
-        periods = 24
-        sims = gen['sims']
-        results = np.zeros((sims, asset['mw_cap'], asset['mw_cap'], periods))
-        generation = gen['generation']
-        rawmat = np.zeros((sims, asset['mw_cap'], asset['mw_cap'], periods))
-        for i in np.arange(0, sims):
-            for j in np.arange(0, periods):
-                rawmat[i, :, :, j] = np.matrix([[0,0,0],[.5,0,0],[1,.5,0]])
-                rawmat[i, :, :, j] = np.tril(rawmat[i, :, :, j])
-                rawmat[i, :, :, j] = prices[i, j] * rawmat[i, :, :, j]
-        results = rawmat
-        return results
+        generation = gen
+        periods = 168
+        states = np.arange(0,(asset['mw']+.1),.1)
+        probmat = np.ones((len(states),len(states),periods))
+        for i in np.arange(0,periods):
+            maxstor = int(10 * generation[i])
+            probmat[:(len(states) - maxstor),maxstor:,i] = np.tril(probmat[:(len(states) - maxstor),maxstor:,i])
+        return probmat

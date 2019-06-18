@@ -1,22 +1,39 @@
 import numpy as np
 
-def solve(R, P, q = 1):
+def solve(R, P):
     '''
-    This runs a finite horizon backwards recursion to select the
-    optimal state matrix and max value.
-    R is an nd.array, of {sims, states, states, periods}
-    P is an nd.array, of {sims, states, states, periods}
-    q indicates the shortest possible switching time. Default to 1 hour.
+    R is a states X states X periods reward matrix
+    P is a states X states X periods probability matrix
     '''
-    nsims, states, periods = R[:,:,0,:].shape
-    optim_pol = np.zeros((nsims, periods))
-    optim_val = np.zeros(nsims)
-    for i in np.arange(0, nsims):
-        V = np.zeros((states, periods))
-        for j in np.arange(periods-2, -1, -1):
-            for k in np.arange(0, states):
-                V[k,j] = max(R[i,k,:,j] + np.multiply(P[i,k,:,j], V[:,j+1]))
-            optim_pol[i,j] = np.argmax(V[:,j])
-        optim_val[i] = max(V[:,j])
-    results = {'opt_val': optim_val, 'opt_pol': optim_pol}
+
+    states, periods = R[0,:,:].shape
+    initialstate = int(states-1)
+    optim_act = np.zeros((periods))
+    Q = np.zeros((states, periods))
+    for k in np.arange(0,states):
+        Q[k,periods-1] = sum(np.multiply(P[k,:,periods-1], R[k,:,periods-1]))
+
+    def bwsweep(period, state):
+        for i in np.arange(periods-2, period, -1):
+            for k in np.arange(0,states):
+                Q[k, i] = sum(np.multiply(P[k,:,i], (R[k,:,i] + Q[:,i+1])))
+        result = np.argmax(np.multiply(P[state,:,period], (R[state,:,period] + Q[:,(period+1)])))
+        return result
+
+    def fwsweep():
+        optim_act[0] = int(bwsweep(0,initialstate))
+        for i in np.arange(1, periods-1):
+            optim_act[i] = int(bwsweep(i,int(optim_act[(i-1)])))
+        return optim_act
+
+    def calc_rev(policy):
+        revenue = R[initialstate, int(policy[0]), 0]
+        for i in np.arange(1,periods):
+            revenue += R[int(policy[i-1]), int(policy[i]), i]
+        return revenue
+
+    optim_policy = fwsweep()
+    revenue = 4*calc_rev(optim_policy)
+
+    results = {'opt_act': optim_policy, 'revenue': revenue}
     return results
