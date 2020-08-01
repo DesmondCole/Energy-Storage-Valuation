@@ -8,10 +8,10 @@ class DispatchAsset:
     Feeds the optimizer storage characteristics, and runs it to generate values.
     '''
     def __init__(self, *, asset, gen, market):
-        reward_mat = self._rewardvals(asset = asset, market = market, gen = gen)
-        prob_mat = self._probvals(asset = asset, gen = gen, market = market)
+        reward_mat = self._rewardvals(asset=asset, market=market, gen=gen)
+        prob_mat = self._probvals(asset=asset, gen=gen, market=market)
         results = opt.solve(reward_mat, prob_mat)
-        self.testresults = {'reward': reward_mat, 'prob': prob_mat, 'vals': results}
+        self.testresults = {'reward':reward_mat, 'prob':prob_mat, 'vals':results}
         return None
 
     def _rewardvals(self, *, asset, market, gen):
@@ -22,21 +22,23 @@ class DispatchAsset:
 
         Initially built with restriction that solar capacity equal storage cap.
         '''
-        generation = gen
+        generation = gen['kw']
         prices = market['price']
-        states = np.arange(0,(asset['mw']+.1),.1)/asset['mw']
-        periods = 168
-        capacity = asset['mw']
+        storage_capacity = asset['mw']
+
+        states = np.arange(0, (storage_capacity+.1), .1)/storage_capacity
+        periods = 24
         ancillary = .5
-        rewardmat = np.zeros((len(states),len(states),periods))
+        rewardmat = np.zeros((len(states), len(states), periods))
+
         for i in np.arange(0,periods):
             solargen = generation[i]
-            price = prices[i]
-            rows = np.ones((1,len(states))).T
+            price = float(prices[i])
+            rows = np.ones((1, len(states))).T
             solarmat = 1 - np.triu((rows * states) - (rows * states).T)
             solarrev = solarmat * solargen * price
             storagemat = 1 - solarmat.T
-            storagerev = storagemat * capacity * price + np.diag(ancillary * capacity * states)
+            storagerev = storagemat * storage_capacity * price + np.diag(ancillary * storage_capacity * states)
             rewardmat[:,:,i] = solarrev + storagerev
         return rewardmat
 
@@ -44,11 +46,12 @@ class DispatchAsset:
         '''
         generate transition probability matrix.
         '''
-        generation = gen
-        periods = 168
-        states = np.arange(0,(asset['mw']+.1),.1)
-        probmat = np.ones((len(states),len(states),periods))
+        generation = gen['kw']
+        periods = 24
+        states = np.arange(0, (asset['mw']+.1), .1)
+        probmat = np.ones((len(states), len(states), periods))
         for i in np.arange(0,periods):
-            maxstor = int(10 * generation[i])
-            probmat[:(len(states) - maxstor),maxstor:,i] = np.tril(probmat[:(len(states) - maxstor),maxstor:,i])
+            maxstor = int(.001*generation[i])
+            if maxstor<len(states):
+                probmat[:(len(states) - maxstor), maxstor:, i] = np.tril(probmat[:(len(states) - maxstor), maxstor:, i])
         return probmat

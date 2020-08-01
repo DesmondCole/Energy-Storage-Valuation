@@ -5,15 +5,15 @@ from sklearn import linear_model as lm
 
 
 class MarketSimulator:
-    def __init__(self, *, testdata, method):
+    def __init__(self, *, data=None, method):
         if method == 'sim':
             runprices = self._calibration(data = testdata)
             self.results = runprices
         if method == 'mock':
             print('using mock prices')
-            self.results = pd.read_csv('./data/prices.csv', parse_dates = ['Day'])
-            self.results['year'] = self.results['Day'].dt.year
-            self.results['month'] = self.results['Day'].dt.month
+            self.results = pd.read_csv('./data/prices.csv', parse_dates=['day'])
+            self.results['year'] = self.results['day'].dt.year
+            self.results['month'] = self.results['day'].dt.month
         return None
 
     def _do_prices(self, *, prices, sims):

@@ -10,7 +10,6 @@ Need to consider whether to park date selection methods in here or in MC.
 def gen_sim(data, *, N):
     data = self._clean_wx_data(data)
     simindex = monte_carlo.mc_gen(N)
-
     return data
 
 def _clean_wx_data()

@@ -10,19 +10,28 @@ def simulate():
     """
     Govern overall simulation.
     """
-    market = mkt.MarketSimulator(data = testdata, method = 'mock')
-    testbattery = sc.Asset(
+    market = mkt.MarketSimulator(method = 'mock')
+
+    testbattery = stgchr.Asset(
         dod = .86
-        , mw_cap = 15
+        , mw_cap = 1
         , roundtrip = .9
         , mwh_cap = 60
-        , degrad = .99)
+        , degrad = .99
+    ).traits
+
     generation = gntn.Solar(type = 'simple')
+
 
     #loop across year and month
     for i in market.results['year'].unique():
+        print('year: ', i)
         for j in market.results['month'].unique():
-            stgopt.DispatchAsset(asset = testbattery,
-            gen = generation.results[(generation.results['year'] == i) & (generation.results['month'] == j)],
-            market = market.results[(market.results['year'] == i) & (market.results['month'] == j)])
-    return True
+            print('month: ', j)
+            test = stgopt.DispatchAsset(
+            asset=testbattery
+            , gen=generation.data[(generation.data['year'] == i) & (generation.data['month'] == j)]
+            , market=market.results[(market.results['year'] == i) & (market.results['month'] == j)]
+            )
+
+    return test.testresults
